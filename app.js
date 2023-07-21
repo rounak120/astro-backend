@@ -23,10 +23,13 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+const cloud_upload=({});
 // Routes
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
+// image uploader
+
 app.get('/forauthorization' ,(req,res)=>{
   // console.log(req.user.email);
   var emailId=req.user.email
@@ -52,7 +55,7 @@ app.get('/forauthorization' ,(req,res)=>{
   })
 })
 
-app.post('/ClusterOfColors', upload.single('file'), (req, res) => {
+app.post('/ClusterOfColors',upload.single('file') , (req, res) => {
   try {
     const imagePath = req.file.path;
     const pythonProcess = spawn('python', ['Python/clusterOfColors.py', imagePath]);
@@ -73,10 +76,13 @@ app.post('/ClusterOfColors', upload.single('file'), (req, res) => {
     res.json({ error })
   }
 });
-app.post('/BackgroundRemover', upload.single('file'), (req, res) => {
+app.post('/BackgroundRemover', (req, res) => {
   // console.log("hello"); 
+  // console.log(req.body.url)
+
   try {
-    const imagePath = req.file.path;
+    const imagePath = req.body.url;
+    
     console.log("path:", imagePath);
     const pythonProcess = spawn('python', ['Python/backgroundRemover.py', imagePath]);
     let result = '';
