@@ -1,4 +1,6 @@
 var express = require("express")
+const fs = require('fs');
+const fetch = require('node-fetch'); 
 var cors = require("cors")
 var morgan = require("morgan")
 var {spawn} = require("child_process")
@@ -23,7 +25,31 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-const cloud_upload=({});
+async function cloud_upload() {
+  const imagePath="../abc.png"
+  try {
+    // Read the image data from the file system
+    const imageData = fs.readFileSync(imagePath);
+
+    const formData = new FormData();
+    formData.append('file', imageData, { filename: 'image.jpg' });
+    formData.append("upload_preset", "chat-app");
+    formData.append("cloud_name", "dtdehangx");
+  
+    const response = await axios.post("https://api.cloudinary.com/v1_1/dtdehangx/image/upload", formData, {
+      headers: formData.getHeaders(), // Set proper headers for the form data
+    });
+
+    const upload_json = response.data;
+    console.log(upload_json)
+    return upload_json.url; // Return the parsed JSON response
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    return null; // Return null or handle the error appropriately
+  }
+}
+
+
 // Routes
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -77,7 +103,7 @@ app.post('/ClusterOfColors',upload.single('file') , (req, res) => {
   }
 });
 app.post('/BackgroundRemover', (req, res) => {
-  // console.log("hello"); 
+  console.log("hello"); 
   // console.log(req.body.url)
 
   try {
@@ -97,6 +123,8 @@ app.post('/BackgroundRemover', (req, res) => {
       console.log(`Python script process exited with code ${code}`);
       res.json({ resultPath:result });
     })
+    url=cloud_upload();
+    console.log(url);
   } catch (error) {
     console.log(error);
     res.json({ error })

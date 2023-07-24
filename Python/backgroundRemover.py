@@ -27,8 +27,9 @@ subtracted = cv2.absdiff(img, background)
 # print('reached')
 subtracted_scaled = cv2.normalize(subtracted, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 # print(subtracted)
+# cv2.imshow("Subtracted and Scaled Image", subtracted_scaled)
 uploaded_url=uploadFile(subtracted_scaled)
-print (uploaded_url)
+
 # filekey=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 # url = "https://api.cloudinary.com/v1_1/dtdehangx/image/upload"
 # upload_preset = "chat-app"
