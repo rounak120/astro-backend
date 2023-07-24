@@ -8,11 +8,13 @@ from scipy import ndimage
 from skimage import io, color, exposure
 import sys
 import string
+from uploadfile import uploadFile
 import random
+import time
 # Load the image
-
+start_time = time.time()
 src = sys.argv[1]
-img = cv2.imread(src)
+img = io.imread(src)
 # print(img)
 # Convert to grayscale
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -33,11 +35,4 @@ for contour in contours:
     center = (int(x), int(y))
     radius = int(radius)
     cv2.circle(img, center, radius, (0, 0, 255), 2)
-filekey=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-path='C:/Users/rouna/Desktop/Astro/Backend/Files/'+filekey+'.png'
-userPath=path[3:]
-userPath=userPath.replace("/","|")
-print(filekey+'.png')
-cv2.imwrite(path,img)
-# path=cluster_from_image('https://www.google.com/imgres?imgurl=https%3A%2F%2Fcdn.hswstatic.com%2Fgif%2Fouter-space.jpg&tbnid=oxqQIWUnOnRtaM&vet=12ahUKEwjXl4Xe2bX-AhWeCrcAHeGVAmwQMygIegUIARDyAQ..i&imgrefurl=https%3A%2F%2Fscience.howstuffworks.com%2F8-mind-bending-facts-about-outer-space.htm&docid=mVhyo8Rlf7NRLM&w=1600&h=900&q=space%20images&ved=2ahUKEwjXl4Xe2bX-AhWeCrcAHeGVAmwQMygIegUIARDyAQ')
-    
+uploaded_url=uploadFile(img)

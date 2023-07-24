@@ -10,10 +10,12 @@ import os
 import random
 import string
 import sys
-import requests
+import time
+# import requests
 from uploadfile import uploadFile
 src = sys.argv[1]
 img = io.imread(src)
+start_time = time.time()
 # print(src)
 # Load the image
 
@@ -29,7 +31,6 @@ subtracted_scaled = cv2.normalize(subtracted, None, 0, 255, cv2.NORM_MINMAX, dty
 # print(subtracted)
 # cv2.imshow("Subtracted and Scaled Image", subtracted_scaled)
 uploaded_url=uploadFile(subtracted_scaled)
-
 # filekey=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 # url = "https://api.cloudinary.com/v1_1/dtdehangx/image/upload"
 # upload_preset = "chat-app"

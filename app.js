@@ -1,5 +1,6 @@
 var express = require("express")
 const fs = require('fs');
+const axios = require('axios');
 const fetch = require('node-fetch'); 
 var cors = require("cors")
 var morgan = require("morgan")
@@ -23,46 +24,49 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   }
 });
-
 const upload = multer({ storage });
-async function cloud_upload() {
-  const imagePath="../abc.png"
-  try {
-    // Read the image data from the file system
-    const imageData = fs.readFileSync(imagePath);
 
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+async function cloud_upload(imagePath='abc.png') {
+  try {
+    await wait(2000)
+    const imageData = fs.readFileSync(imagePath);
+    const blob = new Blob([imageData], { type: 'image/jpeg' });
+  
     const formData = new FormData();
-    formData.append('file', imageData, { filename: 'image.jpg' });
+    formData.append('file', blob, 'image.jpg');
     formData.append("upload_preset", "chat-app");
     formData.append("cloud_name", "dtdehangx");
   
-    const response = await axios.post("https://api.cloudinary.com/v1_1/dtdehangx/image/upload", formData, {
-      headers: formData.getHeaders(), // Set proper headers for the form data
-    });
+    const response = await axios.post("https://api.cloudinary.com/v1_1/dtdehangx/image/upload", formData);
 
     const upload_json = response.data;
-    console.log(upload_json)
-    return upload_json.url; // Return the parsed JSON response
+    return upload_json.url; 
   } catch (error) {
     console.error("Error uploading image:", error);
-    return null; // Return null or handle the error appropriately
+    return null; 
   }
 }
 
 
-// Routes
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
-// image uploader
+
+
+
+
 
 app.get('/forauthorization' ,(req,res)=>{
-  // console.log(req.user.email);
   var emailId=req.user.email
   var name=req.user.name
   
   let sql='select * from user_details where email_id= ? '
-  // console.log(sql);
   con.query(sql,[emailId], function(err,res){
     if(err) throw err
     if(res.length===0){
@@ -81,76 +85,98 @@ app.get('/forauthorization' ,(req,res)=>{
   })
 })
 
-app.post('/ClusterOfColors',upload.single('file') , (req, res) => {
-  try {
-    const imagePath = req.file.path;
-    const pythonProcess = spawn('python', ['Python/clusterOfColors.py', imagePath]);
-    let result = '';
-    pythonProcess.stdout.on('data', (data) => {
-        // console.log(`Python script stdout: ${data}`);
-      result += data.toString();
-    });
-    pythonProcess.stderr.on('data', (data) => {
-      console.error(`Python script stderr: ${data}`);
-    });
-    pythonProcess.on('close', (code) => {
-      console.log(`Python script process exited with code ${code}`);
-      res.json({ resultPath:result });
-    })
-  } catch (error) {
-    console.log(error);
-    res.json({ error })
-  }
-});
-app.post('/BackgroundRemover', (req, res) => {
-  console.log("hello"); 
-  // console.log(req.body.url)
 
+
+
+app.post('/ClusterOfColors', async(req, res) => {
   try {
     const imagePath = req.body.url;
-    
-    console.log("path:", imagePath);
-    const pythonProcess = spawn('python', ['Python/backgroundRemover.py', imagePath]);
-    let result = '';
-    pythonProcess.stdout.on('data', (data) => {
+    const pythonProcess = spawn('python', ['Python/clusterOfColors.py', imagePath]);
+    let url 
+    pythonProcess.stdout.on('data', async(data) => {
         console.log(`Python script stdout: ${data}`);
-      result += data.toString();
-    });
-    pythonProcess.stderr.on('data', (data) => {
-      console.error(`Python script stderr: ${data}`);
-    });
-    pythonProcess.on('close', (code) => {
-      console.log(`Python script process exited with code ${code}`);
-      res.json({ resultPath:result });
+      });
+      pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python script stderr: ${data}`);
+      });
+      pythonProcess.on('close', async(code) => {
+        console.log(`Python script process exited with code ${code}`);
+        url=await cloud_upload();
+        res.json({resp:url})
     })
-    url=cloud_upload();
-    console.log(url);
+    // save to backend here
+    //  url is filtered image and req.body.url is original image
   } catch (error) {
     console.log(error);
     res.json({ error })
   }
 });
-app.post('/ClusterFromImage', upload.single('file'), (req, res) => {
+
+
+
+
+
+
+
+app.post('/BackgroundRemover', async(req, res) => {
   try {
-    const imagePath = req.file.path;
-    const pythonProcess = spawn('python', ['Python/clusterFromImage.py', imagePath]);
-    let result = '';
-    pythonProcess.stdout.on('data', (data) => {
-        // console.log(`Python script stdout: ${data}`);
-      result += data.toString();
-    });
-    pythonProcess.stderr.on('data', (data) => {
-      console.error(`Python script stderr: ${data}`);
-    });
-    pythonProcess.on('close', (code) => {
-      console.log(`Python script process exited with code ${code}`);
-      res.json({ resultPath:result });
+    const imagePath = req.body.url;
+    const pythonProcess = spawn('python', ['Python/backgroundRemover.py', imagePath]);
+    let url
+    pythonProcess.stdout.on('data', async(data) => {
+        console.log(`Python script stdout: ${data}`);
+      });
+      pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python script stderr: ${data}`);
+      });
+      pythonProcess.on('close', async(code) => {
+        console.log(`Python script process exited with code ${code}`);
+        url=await cloud_upload();
+        res.json({resp:url})
     })
+    // save to backend here
+    //  url is filtered image and req.body.url is original image
   } catch (error) {
     console.log(error);
     res.json({ error })
   }
 });
+
+
+
+
+
+
+app.post('/ClusterFromImage', async(req, res) => {
+  try {
+    const imagePath = req.body.url;
+    let url
+    const pythonProcess = spawn('python', ['Python/clusterFromImage.py', imagePath]);
+    pythonProcess.stdout.on('data', async(data) => {
+        console.log(`Python script stdout: ${data}`);
+      });
+      pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python script stderr: ${data}`);
+      });
+      pythonProcess.on('close', async(code) => {
+        console.log(`Python script process exited with code ${code}`);
+        url=await cloud_upload();
+        res.json({resp:url})
+    })
+    // save to backend here
+    //  url is filtered image and req.body.url is original image
+  } catch (error) {
+    console.log(error);
+    res.json({ error })
+  }
+});
+
+
+
+
+
+
+
 app.get('/asteroidDetector', (req, res) => {
   try {
     const pythonProcess = spawn('python', ['Python/asteroidDetector.py']);

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import sys
+import time
 from skimage import exposure
 from skimage import io
 import matplotlib.pyplot as plt
@@ -28,9 +29,5 @@ axs[1].set_title('Quantized Image')
 for ax in axs:
     ax.axis('off')
 plt.tight_layout()
-filekey=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-path='C:/Users/rouna/Desktop/Astro/Backend/Files/'+filekey+'.png'
-userPath=path[3:]
-userPath=userPath.replace("/","|")
-print(filekey+'.png')
-plt.savefig(path)
+path=plt.savefig('abc.png') 
+
