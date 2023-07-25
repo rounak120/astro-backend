@@ -4,6 +4,6 @@ var con = mysql.createConnection({
     host:'localhost',
     database:'astro',
     user:'root',
-    password:''
+    password:'rounak'
 });
 module.exports = con  ;

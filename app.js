@@ -9,6 +9,10 @@ var multer = require("multer")
 var path = require("path")
 var con = require("./db") 
 var middleware = require("./middleware")
+var LocalStorage = require('node-localstorage').LocalStorage,
+localStorage = new LocalStorage('./scratch');
+// var {Blob} = require('buffer')
+// var FormData = require('form-data')
 const app = express();
 app.use(express.static('Files'))
 app.use(express.static('cluster'))
@@ -52,7 +56,17 @@ async function cloud_upload(imagePath='abc.png') {
     return null; 
   }
 }
+function insert(feature,original,modified,time){
+  var email=localStorage.getItem(email)
+  // console.log(feature);
+  let que=`insert into user_data (email_id,feature,original_img,modified_img,date) values (?,?,?,?,?)`
+  con.query(que,[email,feature,original,modified,time],function(err,res){
 
+        if(err) throw err
+        console.log(res);
+        console.log("Data inserted");
+      })
+}
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -61,11 +75,13 @@ app.get('/', (req, res) => {
 
 
 
+let email
 
 app.get('/forauthorization' ,(req,res)=>{
   var emailId=req.user.email
   var name=req.user.name
-  
+  localStorage.setItem(email,emailId)
+  // email=emailId
   let sql='select * from user_details where email_id= ? '
   con.query(sql,[emailId], function(err,res){
     if(err) throw err
@@ -103,7 +119,13 @@ app.post('/ClusterOfColors', async(req, res) => {
         console.log(`Python script process exited with code ${code}`);
         url=await cloud_upload();
         res.json({resp:url})
+        var feature='PC'
+        var original=req.body.url
+        var modified=url
+        var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
+        insert(feature,original,modified,time)
     })
+    
     // save to backend here
     //  url is filtered image and req.body.url is original image
   } catch (error) {
@@ -111,42 +133,37 @@ app.post('/ClusterOfColors', async(req, res) => {
     res.json({ error })
   }
 });
-
-
-
-
-
-
-
 app.post('/BackgroundRemover', async(req, res) => {
   try {
     const imagePath = req.body.url;
     const pythonProcess = spawn('python', ['Python/backgroundRemover.py', imagePath]);
-    let url
-    pythonProcess.stdout.on('data', async(data) => {
+    var url
+      pythonProcess.stdout.on('data', async(data) => {
         console.log(`Python script stdout: ${data}`);
       });
       pythonProcess.stderr.on('data', (data) => {
         console.error(`Python script stderr: ${data}`);
       });
-      pythonProcess.on('close', async(code) => {
+       pythonProcess.on('close', async(code) => {
         console.log(`Python script process exited with code ${code}`);
         url=await cloud_upload();
         res.json({resp:url})
+        var feature='BR'
+        var original=req.body.url
+        var modified=url
+        var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
+        insert(feature,original,modified,time)
     })
+    
+    
     // save to backend here
     //  url is filtered image and req.body.url is original image
+
   } catch (error) {
     console.log(error);
     res.json({ error })
   }
 });
-
-
-
-
-
-
 app.post('/ClusterFromImage', async(req, res) => {
   try {
     const imagePath = req.body.url;
@@ -162,7 +179,14 @@ app.post('/ClusterFromImage', async(req, res) => {
         console.log(`Python script process exited with code ${code}`);
         url=await cloud_upload();
         res.json({resp:url})
+        var feature='SC'
+        var original=req.body.url
+        var modified=url
+        var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
+        insert(feature,original,modified,time)
+
     })
+
     // save to backend here
     //  url is filtered image and req.body.url is original image
   } catch (error) {
@@ -170,13 +194,6 @@ app.post('/ClusterFromImage', async(req, res) => {
     res.json({ error })
   }
 });
-
-
-
-
-
-
-
 app.get('/asteroidDetector', (req, res) => {
   try {
     const pythonProcess = spawn('python', ['Python/asteroidDetector.py']);
@@ -195,6 +212,7 @@ app.get('/asteroidDetector', (req, res) => {
   } catch (error) {
     console.log(error);
     res.json({ error })
+    
   }
 });
   
