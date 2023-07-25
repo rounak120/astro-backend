@@ -100,8 +100,9 @@ def plot(datasets, labels):
     return fig
     
     
-datasets = pd.read_csv("C:/Users/rouna/Desktop/Astro/Backend/Python/asteroid_belt.csv",sep=",",header=None)
+datasets = pd.read_csv("./asteroid_belt.csv",sep=",",header=None)
 datasets=np.array(datasets)
 labels=perform_dbscan(datasets,0.1,7)    
 fig=plot(datasets,labels)
+fig.write_html("asteroid.html")
 fig.show()
