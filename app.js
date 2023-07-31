@@ -57,15 +57,17 @@ async function cloud_upload(imagePath='abc.png') {
     return null; 
   }
 }
-function insert(feature,original,modified,time){
-  var email=localStorage.getItem(email)
+function insert(feature,original,modified,time,email){
+
+  // var email=localStorage.getItem(email)
+  // console.log(email);
   // console.log(feature);
   let que=`insert into user_data (email_id,feature,original_img,modified_img,date) values (?,?,?,?,?)`
   con.query(que,[email,feature,original,modified,time],function(err,res){
 
         if(err) throw err
-        console.log(res);
-        console.log("Data inserted");
+        // console.log(res);
+        // console.log("Data inserted");
       })
 }
 
@@ -124,7 +126,8 @@ app.post('/ClusterOfColors', async(req, res) => {
         var original=req.body.url
         var modified=url
         var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
-        insert(feature,original,modified,time)
+        // console.log(req.user.email);
+        insert(feature,original,modified,time,req.user.email)
     })
     
     // save to backend here
@@ -153,7 +156,7 @@ app.post('/BackgroundRemover', async(req, res) => {
         var original=req.body.url
         var modified=url
         var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
-        insert(feature,original,modified,time)
+        insert(feature,original,modified,time,req.user.email)
     })
     
     
@@ -184,7 +187,7 @@ app.post('/ClusterFromImage', async(req, res) => {
         var original=req.body.url
         var modified=url
         var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
-        insert(feature,original,modified,time)
+        insert(feature,original,modified,time,req.user.email)
 
     })
 
@@ -217,30 +220,6 @@ app.get('/asteroidDetector', (req, res) => {
     
   }
 });
-  
-app.get('/index', async(req, res) => {
-  try {
-    let dataChunks = [];
-        const pythonProcess = spawn('python', ['Python/calendar.py']);
-    pythonProcess.stdout.on('data', (data) => {
-        // console.log(`Python script stdout: ${data}`);
-        dataChunks.push(data);
-      });
-      pythonProcess.stderr.on('data', (data) => {
-        console.error(`Python script stderr: ${data}`);
-      });
-      pythonProcess.on('close', async(code) => {
-        const result = Buffer.concat(dataChunks).toString();
-      // const result = JSON.parse(jsonString);
-      res.json({result})
-        console.log(result);
-    })
-  } catch (error) {
-    console.log(error);
-    res.json({ error })
-  }
-});
-
 // Start the server
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
