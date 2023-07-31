@@ -220,6 +220,17 @@ app.get('/asteroidDetector', (req, res) => {
     
   }
 });
+app.get('/images',(req,res)=>{
+
+  let que=`select * from user_data where email_id=?`
+  con.query(que,[req.user.email],function(err,resp){
+
+        if(err) throw err
+        res.json(resp)
+        // console.log(res);
+        // console.log("Data inserted");
+      })
+})
 // Start the server
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
