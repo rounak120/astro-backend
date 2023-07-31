@@ -218,30 +218,22 @@ app.get('/asteroidDetector', (req, res) => {
   }
 });
   
-app.post('/index', async(req, res) => {
-  console.log("hello");
+app.get('/index', async(req, res) => {
   try {
-    // let calendar = {
-    //   "0": {
-    //     "date": "January 3 - 4",
-    //     "title": "Quadrantids Meteor Shower",
-    //     "description": "The Quadrantids is an above average shower, with up to 40 meteors per hour at its peak. It is thought to be produced by dust grains left behind by an extinct comet known as 2003 EH1, which was discovered in 2003. The shower runs annually from January 1-5. It peaks this year on the night of the 3rd and morning of the 4th. This year the nearly full moon will block out most of the fainter meteors. But if you are patient you may still be able to catch a few good ones. Best viewing will be from a dark location after midnight. Meteors will radiate from the constellation Bootes, but can appear anywhere in the sky."
-    //   }
-    // };
-    
-    // res.json(calendar);
-    let calendar={};
+    let dataChunks = [];
         const pythonProcess = spawn('python', ['Python/calendar.py']);
-    pythonProcess.stdout.on('data', async(data) => {
-        console.log(`Python script stdout: ${data}`);
-        calendar=data
+    pythonProcess.stdout.on('data', (data) => {
+        // console.log(`Python script stdout: ${data}`);
+        dataChunks.push(data);
       });
       pythonProcess.stderr.on('data', (data) => {
         console.error(`Python script stderr: ${data}`);
       });
       pythonProcess.on('close', async(code) => {
-        console.log(`Python script process exited with code ${code}`);
-        res.json(calendar)
+        const result = Buffer.concat(dataChunks).toString();
+      // const result = JSON.parse(jsonString);
+      res.json({result})
+        console.log(result);
     })
   } catch (error) {
     console.log(error);
