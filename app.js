@@ -57,15 +57,17 @@ async function cloud_upload(imagePath='abc.png') {
     return null; 
   }
 }
-function insert(feature,original,modified,time){
-  var email=localStorage.getItem(email)
+function insert(feature,original,modified,time,email){
+
+  // var email=localStorage.getItem(email)
+  // console.log(email);
   // console.log(feature);
   let que=`insert into user_data (email_id,feature,original_img,modified_img,date) values (?,?,?,?,?)`
   con.query(que,[email,feature,original,modified,time],function(err,res){
 
         if(err) throw err
-        console.log(res);
-        console.log("Data inserted");
+        // console.log(res);
+        // console.log("Data inserted");
       })
 }
 
@@ -124,7 +126,8 @@ app.post('/ClusterOfColors', async(req, res) => {
         var original=req.body.url
         var modified=url
         var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
-        insert(feature,original,modified,time)
+        // console.log(req.user.email);
+        insert(feature,original,modified,time,req.user.email)
     })
     
     // save to backend here
@@ -153,7 +156,7 @@ app.post('/BackgroundRemover', async(req, res) => {
         var original=req.body.url
         var modified=url
         var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
-        insert(feature,original,modified,time)
+        insert(feature,original,modified,time,req.user.email)
     })
     
     
@@ -184,7 +187,7 @@ app.post('/ClusterFromImage', async(req, res) => {
         var original=req.body.url
         var modified=url
         var time=new Date().toJSON().slice(0, 19).replace('T', ' ')
-        insert(feature,original,modified,time)
+        insert(feature,original,modified,time,req.user.email)
 
     })
 
@@ -217,38 +220,6 @@ app.get('/asteroidDetector', (req, res) => {
     
   }
 });
-  
-app.post('/index', async(req, res) => {
-  console.log("hello");
-  try {
-    // let calendar = {
-    //   "0": {
-    //     "date": "January 3 - 4",
-    //     "title": "Quadrantids Meteor Shower",
-    //     "description": "The Quadrantids is an above average shower, with up to 40 meteors per hour at its peak. It is thought to be produced by dust grains left behind by an extinct comet known as 2003 EH1, which was discovered in 2003. The shower runs annually from January 1-5. It peaks this year on the night of the 3rd and morning of the 4th. This year the nearly full moon will block out most of the fainter meteors. But if you are patient you may still be able to catch a few good ones. Best viewing will be from a dark location after midnight. Meteors will radiate from the constellation Bootes, but can appear anywhere in the sky."
-    //   }
-    // };
-    
-    // res.json(calendar);
-    let calendar={};
-        const pythonProcess = spawn('python', ['Python/calendar.py']);
-    pythonProcess.stdout.on('data', async(data) => {
-        console.log(`Python script stdout: ${data}`);
-        calendar=data
-      });
-      pythonProcess.stderr.on('data', (data) => {
-        console.error(`Python script stderr: ${data}`);
-      });
-      pythonProcess.on('close', async(code) => {
-        console.log(`Python script process exited with code ${code}`);
-        res.json(calendar)
-    })
-  } catch (error) {
-    console.log(error);
-    res.json({ error })
-  }
-});
-
 // Start the server
 const port = process.env.PORT || 8000;
 app.listen(port, () => {

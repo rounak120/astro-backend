@@ -11,6 +11,8 @@ class Middleware {
 			if (decodeValue) {
 				// console.log("hello");
 				req.user = decodeValue;
+				// req.email=decodeValue.email;
+				// console.log(req.email);
 				return next();
 			}
 			return res.json({ message: 'Un authorize' });
